@@ -86,8 +86,8 @@ class TickerApp:
         self.canvas.bind("<ButtonPress-1>", self.start_move)
         self.canvas.bind("<B1-Motion>", self.do_move)
 
-        # Click anywhere on ticker to open popup
-        self.canvas.bind("<Button-1>", self.show_popup)
+        # Double-click anywhere on ticker to open popup
+        self.canvas.bind("<Double-Button-1>", self.show_popup)
 
     def update_feed(self):
         url = next(self.feed_cycle)
