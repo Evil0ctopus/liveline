@@ -29,10 +29,14 @@ def fetch_feed(url):
             # Atom fallback: <summary>
             elif item.find("summary") and item.find("summary").text:
                 headlines.append(item.find("summary").text.strip())
+            # Extra fallback: <link title="...">
+            elif item.find("link") and item.find("link").get("title"):
+                headlines.append(item.find("link").get("title").strip())
 
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
+
 
 
 
