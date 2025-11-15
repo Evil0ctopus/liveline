@@ -46,6 +46,7 @@ def fetch_feed(url):
 
 
 
+
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
         self.root = root
