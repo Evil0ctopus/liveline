@@ -22,16 +22,18 @@ def fetch_feed(url):
 
         headlines = []
         for item in items[:5]:
-            # Look for <title> in multiple ways
+            # Try <title> tag
             title_tag = item.find("title")
             if title_tag and title_tag.text:
                 headlines.append(title_tag.text.strip())
+            # Fallback: some Atom feeds put title in <link> attributes
             elif item.find("link") and item.find("link").get("title"):
                 headlines.append(item.find("link").get("title").strip())
 
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
+
 
 
 class TickerApp:
