@@ -40,9 +40,15 @@ class TickerApp:
     def update_feed(self):
         url = next(self.feed_cycle)
         headlines = fetch_feed(url)
+
+        # 👇 Debug print to terminal
+        print(f"\n[Liveline] Loaded feed: {url}")
+        print(f"[Liveline] Headlines: {headlines}\n")
+
         self.canvas.itemconfig(self.text_item, text=headlines)
         # refresh every 60 seconds
         self.root.after(60000, self.update_feed)
+
 
     def scroll(self):
         dx = -2 if self.direction=="left" else 2
