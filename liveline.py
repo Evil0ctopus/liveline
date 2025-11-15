@@ -3,9 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import itertools
-import threading
-from pystray import Icon, MenuItem
-from PIL import Image, ImageDraw
 
 def load_feeds():
     with open("feeds.json", "r") as f:
@@ -36,7 +33,7 @@ def fetch_feed(url):
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
         self.root = root
-        self.canvas = tk.Canvas(root, height=50, width=800, bg="black")
+        self.canvas = tk.Canvas(root, height=50, width=800, bg="black", highlightthickness=0)
         self.canvas.pack()
         self.direction = direction
         self.feed_cycle = itertools.cycle(feeds)
@@ -55,6 +52,10 @@ class TickerApp:
 
         self.update_feed()
         self.scroll()
+
+        # Enable dragging the widget
+        self.canvas.bind("<ButtonPress-1>", self.start_move)
+        self.canvas.bind("<B1-Motion>", self.do_move)
 
     def update_feed(self):
         url = next(self.feed_cycle)
@@ -86,35 +87,25 @@ class TickerApp:
             self.canvas.coords(self.text_item, 0, 25)
         self.root.after(50, self.scroll)
 
-# --- System Tray Support ---
-def create_image():
-    # Simple tray icon (red square)
-    image = Image.new("RGB", (64, 64), "black")
-    draw = ImageDraw.Draw(image)
-    draw.rectangle((16, 16, 48, 48), fill="red")
-    return image
+    # --- Dragging support ---
+    def start_move(self, event):
+        self._x = event.x
+        self._y = event.y
 
-def on_quit(icon, item):
-    icon.stop()
-    root.quit()
-
-def run_tray():
-    icon = Icon("Liveline", create_image(), menu=(
-        MenuItem("Show Ticker", lambda icon, item: (root.deiconify(), root.lift(), root.focus_force())),
-        MenuItem("Hide Ticker", lambda icon, item: root.withdraw()),
-        MenuItem("Quit", on_quit)
-    ))
-    icon.run()
+    def do_move(self, event):
+        x = self.root.winfo_x() + event.x - self._x
+        y = self.root.winfo_y() + event.y - self._y
+        self.root.geometry(f"+{x}+{y}")
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Liveline Ticker")
 
-    # 👇 Start minimized so it shows in the taskbar
-    root.iconify()
-
-    # Start tray in background thread
-    threading.Thread(target=run_tray, daemon=True).start()
+    # 👇 Make it a widget overlay
+    root.overrideredirect(True)        # no window borders
+    root.attributes("-topmost", True)  # always on top
+    root.config(bg="black")            # background color
+    root.wm_attributes("-transparentcolor", "black")  # transparent background
 
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
