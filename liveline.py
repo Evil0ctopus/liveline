@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import json
 import itertools
 import webbrowser
+from PIL import Image, ImageTk
+import io
 
 def load_feeds():
     with open("feeds.json", "r") as f:
@@ -29,7 +31,6 @@ def fetch_feed(url):
             if title_tag:
                 text = title_tag.get_text(strip=True)
                 if text:
-                    # Use actual link if available
                     link = link_tag.get_text(strip=True) if link_tag else None
                     headlines.append((text, link))
                     continue
@@ -56,7 +57,7 @@ class TickerApp:
         self.text_item = self.canvas.create_text(
             480 if direction=="left" else 0, 25,
             text="Loading feeds...",
-            fill="white",   # fixed color
+            fill="white",
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
         )
@@ -69,9 +70,9 @@ class TickerApp:
             bg="black",
             fg="white",
             bd=0,
-            font=("Arial", 10),   # smaller font
-            padx=1,               # reduce horizontal padding
-            pady=0                # reduce vertical padding
+            font=("Arial", 10),
+            padx=1,
+            pady=0
         )
         self.close_button.place(x=465, y=5)
 
@@ -95,7 +96,6 @@ class TickerApp:
         print(f"\n[Liveline] Loaded feed: {url}")
         print(f"[Liveline] Headlines: {[h[0] for h in self.headlines]}\n")
 
-        # Display joined headlines in ticker
         display_text = " | ".join([h[0] for h in self.headlines])
         self.canvas.itemconfig(self.text_item, text=display_text)
         self.root.after(60000, self.update_feed)
@@ -120,9 +120,33 @@ class TickerApp:
         tk.Label(popup, text="Latest Headlines", font=("Arial", 14, "bold")).pack(pady=5)
 
         for headline, link in self.headlines:
-            link_label = tk.Label(popup, text=headline, fg="blue", cursor="hand2",
-                                  wraplength=380, justify="left")
-            link_label.pack(anchor="w")
+            frame = tk.Frame(popup)
+            frame.pack(anchor="w", pady=2)
+
+            thumb_img = None
+            if link:
+                try:
+                    resp = requests.get(link, timeout=5)
+                    soup = BeautifulSoup(resp.content, "html.parser")
+                    og_image = soup.find("meta", property="og:image")
+                    if og_image and og_image.get("content"):
+                        img_url = og_image["content"]
+                        img_resp = requests.get(img_url, timeout=5)
+                        img_data = img_resp.content
+                        pil_img = Image.open(io.BytesIO(img_data))
+                        pil_img.thumbnail((40, 40))
+                        thumb_img = ImageTk.PhotoImage(pil_img)
+                except Exception as e:
+                    print(f"Thumbnail error: {e}")
+
+            if thumb_img:
+                img_label = tk.Label(frame, image=thumb_img)
+                img_label.image = thumb_img  # keep reference
+                img_label.pack(side="left")
+
+            link_label = tk.Label(frame, text=headline, fg="blue", cursor="hand2",
+                                  wraplength=320, justify="left")
+            link_label.pack(side="left")
             if link:
                 link_label.bind("<Button-1>", lambda e, url=link: webbrowser.open(url))
 
@@ -140,18 +164,16 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Liveline Ticker")
 
-    # 👇 Make it a widget overlay
-    root.overrideredirect(True)        # no window borders
-    root.attributes("-topmost", True)  # always on top
-    root.config(bg="black")            # background color
-    root.wm_attributes("-transparentcolor", "black")  # transparent background
+    root.overrideredirect(True)
+    root.attributes("-topmost", True)
+    root.config(bg="black")
+    root.wm_attributes("-transparentcolor", "black")
 
-    # Position at bottom-left above taskbar, shifted 1.5 inches (~144px) to the right
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    window_width = 480   # about 5 inches wide
+    window_width = 480
     window_height = 50
-    x = 130              # shift ~1.5 inches to the right
+    x = 144   # ~1.5 inches to the right
     y = screen_height - window_height
     root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
