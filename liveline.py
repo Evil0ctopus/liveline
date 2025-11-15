@@ -28,11 +28,14 @@ def fetch_feed(url):
                 text = title_tag.get_text(strip=True)
                 if text:
                     headlines.append(text)
+                    continue
             # Atom fallback: <summary>
-            elif item.find("summary"):
-                text = item.find("summary").get_text(strip=True)
+            summary_tag = item.find("summary")
+            if summary_tag:
+                text = summary_tag.get_text(strip=True)
                 if text:
                     headlines.append(text)
+                    continue
 
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
@@ -60,6 +63,7 @@ class TickerApp:
 
         self.update_feed()
         self.scroll()
+        self.cycle_color()   # start slower color cycling
 
         # Enable dragging the widget
         self.canvas.bind("<ButtonPress-1>", self.start_move)
@@ -73,20 +77,11 @@ class TickerApp:
         print(f"[Liveline] Headlines: {headlines}\n")
 
         self.canvas.itemconfig(self.text_item, text=headlines)
-
-        # Cycle rainbow colors each feed update
-        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
-        self.color_index = (self.color_index + 1) % len(self.colors)
-
         self.root.after(60000, self.update_feed)
 
     def scroll(self):
         dx = -4 if self.direction=="left" else 4
         self.canvas.move(self.text_item, dx, 0)
-
-        # Optional: cycle colors continuously while scrolling
-        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
-        self.color_index = (self.color_index + 1) % len(self.colors)
 
         x = self.canvas.coords(self.text_item)[0]
         if self.direction=="left" and x < -2000:
@@ -94,6 +89,12 @@ class TickerApp:
         elif self.direction=="right" and x > 2000:
             self.canvas.coords(self.text_item, 0, 25)
         self.root.after(50, self.scroll)
+
+    def cycle_color(self):
+        # Change color every 1000 ms (1 second)
+        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
+        self.color_index = (self.color_index + 1) % len(self.colors)
+        self.root.after(1000, self.cycle_color)
 
     # --- Dragging support ---
     def start_move(self, event):
