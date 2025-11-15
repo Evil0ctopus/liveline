@@ -3,11 +3,14 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import itertools
+import threading
+from pystray import Icon, MenuItem
+from PIL import Image, ImageDraw
 
 def load_feeds():
     with open("feeds.json", "r") as f:
         data = json.load(f)
-    return data["feeds"]
+        return data["feeds"]
 
 def fetch_feed(url):
     try:
@@ -16,15 +19,19 @@ def fetch_feed(url):
 
         # Try RSS <item> first
         items = soup.find_all("item")
-        # Fallback for Atom feeds like NOAA
+        # Fallback for Atom feeds
         if not items:
             items = soup.find_all("entry")
 
-        headlines = " | ".join([item.title.text for item in items[:5]])
-        return headlines if headlines else "No headlines found"
+        headlines = []
+        for item in items[:5]:
+            title_tag = item.find("title")
+            if title_tag:
+                headlines.append(title_tag.text.strip())
+
+        return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
-
 
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
@@ -49,23 +56,29 @@ class TickerApp:
         self.update_feed()
         self.scroll()
 
-
     def update_feed(self):
         url = next(self.feed_cycle)
         headlines = fetch_feed(url)
 
-        # 👇 Debug print to terminal
         print(f"\n[Liveline] Loaded feed: {url}")
         print(f"[Liveline] Headlines: {headlines}\n")
 
         self.canvas.itemconfig(self.text_item, text=headlines)
-        # refresh every 60 seconds
+
+        # Cycle rainbow colors each feed update
+        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
+        self.color_index = (self.color_index + 1) % len(self.colors)
+
         self.root.after(60000, self.update_feed)
 
-
     def scroll(self):
-        dx = -5 if self.direction=="left" else 2
+        dx = -4 if self.direction=="left" else 4
         self.canvas.move(self.text_item, dx, 0)
+
+        # Optional: cycle colors continuously while scrolling
+        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
+        self.color_index = (self.color_index + 1) % len(self.colors)
+
         x = self.canvas.coords(self.text_item)[0]
         if self.direction=="left" and x < -2000:
             self.canvas.coords(self.text_item, 800, 25)
@@ -73,9 +86,36 @@ class TickerApp:
             self.canvas.coords(self.text_item, 0, 25)
         self.root.after(50, self.scroll)
 
+# --- System Tray Support ---
+def create_image():
+    # Simple tray icon (red square)
+    image = Image.new("RGB", (64, 64), "black")
+    draw = ImageDraw.Draw(image)
+    draw.rectangle((16, 16, 48, 48), fill="red")
+    return image
+
+def on_quit(icon, item):
+    icon.stop()
+    root.quit()
+
+def run_tray():
+    icon = Icon("Liveline", create_image(), menu=(
+        MenuItem("Show Ticker", lambda icon, item: root.deiconify()),
+        MenuItem("Hide Ticker", lambda icon, item: root.withdraw()),
+        MenuItem("Quit", on_quit)
+    ))
+    icon.run()
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Liveline Ticker")
+
+    # Start hidden so only tray icon shows
+    root.withdraw()
+
+    # Start tray in background thread
+    threading.Thread(target=run_tray, daemon=True).start()
+
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
