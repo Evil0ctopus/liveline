@@ -22,13 +22,17 @@ def fetch_feed(url):
 
         headlines = []
         for item in items[:5]:
+            # Look for <title> in multiple ways
             title_tag = item.find("title")
-            if title_tag:
+            if title_tag and title_tag.text:
                 headlines.append(title_tag.text.strip())
+            elif item.find("link") and item.find("link").get("title"):
+                headlines.append(item.find("link").get("title").strip())
 
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
+
 
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
