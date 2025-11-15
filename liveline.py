@@ -59,7 +59,7 @@ class TickerApp:
         )
 
         # 🌈 Rainbow colors
-        self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
+        self.colors = ["white"]
         self.color_index = 0
 
         # Close Button (far right, not overlapping text)
