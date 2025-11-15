@@ -33,13 +33,22 @@ class TickerApp:
         self.canvas.pack()
         self.direction = direction
         self.feed_cycle = itertools.cycle(feeds)
+
         self.text_item = self.canvas.create_text(
-            800 if direction=="left" else 0,
-            25,
+            800 if direction=="left" else 0, 25,
             text="Loading feeds...",
             fill="white",
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
+        )
+
+        # 🌈 Add rainbow colors here
+        self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
+        self.color_index = 0
+
+        self.update_feed()
+        self.scroll()
+
         )
         self.update_feed()
         self.scroll()
