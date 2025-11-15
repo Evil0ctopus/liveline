@@ -58,7 +58,7 @@ class TickerApp:
 
 
     def scroll(self):
-        dx = -2 if self.direction=="left" else 2
+        dx = -5 if self.direction=="left" else 2
         self.canvas.move(self.text_item, dx, 0)
         x = self.canvas.coords(self.text_item)[0]
         if self.direction=="left" and x < -2000:
