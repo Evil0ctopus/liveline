@@ -123,21 +123,27 @@ class TickerApp:
             frame = tk.Frame(popup)
             frame.pack(anchor="w", pady=2)
 
-            thumb_img = None
-            if link:
+           thumb_img = None
+if link:
+    try:
+        resp = requests.get(link, timeout=5)
+        soup = BeautifulSoup(resp.content, "html.parser")
+        og_image = soup.find("meta", property="og:image")
+        if og_image and og_image.get("content"):
+            img_url = og_image["content"]
+            img_resp = requests.get(img_url, timeout=5)
+            # ✅ Only proceed if it's an image
+            if "image" in img_resp.headers.get("Content-Type", ""):
+                img_data = img_resp.content
                 try:
-                    resp = requests.get(link, timeout=5)
-                    soup = BeautifulSoup(resp.content, "html.parser")
-                    og_image = soup.find("meta", property="og:image")
-                    if og_image and og_image.get("content"):
-                        img_url = og_image["content"]
-                        img_resp = requests.get(img_url, timeout=5)
-                        img_data = img_resp.content
-                        pil_img = Image.open(io.BytesIO(img_data))
-                        pil_img.thumbnail((40, 40))
-                        thumb_img = ImageTk.PhotoImage(pil_img)
+                    pil_img = Image.open(io.BytesIO(img_data))
+                    pil_img.thumbnail((40, 40))
+                    thumb_img = ImageTk.PhotoImage(pil_img)
                 except Exception as e:
-                    print(f"Thumbnail error: {e}")
+                    print(f"PIL error: {e}")
+    except Exception as e:
+        print(f"Thumbnail error: {e}")
+
 
             if thumb_img:
                 img_label = tk.Label(frame, image=thumb_img)
