@@ -2,7 +2,7 @@
   "feeds": [
     "https://www.spaceweatherlive.com/rss/solar-activity.xml",
     "https://www.weather.gov/rss/stl",
-    "https://apnews.com/apf-topnews",
+    "https://apnews.com/apf-topnews?format=xml",
     "http://feeds.bbci.co.uk/news/rss.xml",
     "https://www.nasa.gov/rss/dyn/breaking_news.rss",
     "https://www.reddit.com/r/python/.rss"
