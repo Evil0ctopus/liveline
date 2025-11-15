@@ -1,6 +1,5 @@
 {
   "feeds": [
-    "https://www.spaceweather.com/rss.php",
     "http://feeds.foxnews.com/foxnews/politics",
     "http://rss.cnn.com/rss/cnn_allpolitics.rss",
     "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",
