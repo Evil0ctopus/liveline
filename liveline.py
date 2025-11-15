@@ -6,6 +6,7 @@ import itertools
 import webbrowser
 from PIL import Image, ImageTk
 import io
+import urllib.parse
 
 def load_feeds():
     with open("feeds.json", "r") as f:
@@ -123,29 +124,23 @@ class TickerApp:
             frame = tk.Frame(popup)
             frame.pack(anchor="w", pady=2)
 
-            thumb_img = None
+            icon_img = None
             if link:
                 try:
-                    resp = requests.get(link, timeout=5)
-                    soup = BeautifulSoup(resp.content, "html.parser")
-                    og_image = soup.find("meta", property="og:image")
-                    if og_image and og_image.get("content"):
-                        img_url = og_image["content"]
-                        img_resp = requests.get(img_url, timeout=5)
-                        if "image" in img_resp.headers.get("Content-Type", ""):
-                            img_data = img_resp.content
-                            try:
-                                pil_img = Image.open(io.BytesIO(img_data))
-                                pil_img.thumbnail((40, 40))
-                                thumb_img = ImageTk.PhotoImage(pil_img)
-                            except Exception as e:
-                                print(f"PIL error: {e}")
+                    domain = urllib.parse.urlparse(link).netloc
+                    favicon_url = f"https://www.google.com/s2/favicons?domain={domain}"
+                    resp = requests.get(favicon_url, timeout=5)
+                    if "image" in resp.headers.get("Content-Type", ""):
+                        img_data = resp.content
+                        pil_img = Image.open(io.BytesIO(img_data))
+                        pil_img.thumbnail((16, 16))  # favicon size
+                        icon_img = ImageTk.PhotoImage(pil_img)
                 except Exception as e:
-                    print(f"Thumbnail error: {e}")
+                    print(f"Favicon error: {e}")
 
-            if thumb_img:
-                img_label = tk.Label(frame, image=thumb_img)
-                img_label.image = thumb_img  # keep reference
+            if icon_img:
+                img_label = tk.Label(frame, image=icon_img)
+                img_label.image = icon_img  # keep reference
                 img_label.pack(side="left")
 
             link_label = tk.Label(frame, text=headline, fg="blue", cursor="hand2",
@@ -177,12 +172,13 @@ if __name__ == "__main__":
     screen_height = root.winfo_screenheight()
     window_width = 480
     window_height = 50
-    x = 144   # ~1.5 inches to the right
+    x = 130   # ~1.5 inches to the right
     y = screen_height - window_height
     root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
+
 
 
