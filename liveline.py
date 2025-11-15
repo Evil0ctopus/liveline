@@ -61,6 +61,11 @@ class TickerApp:
         self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
         self.color_index = 0
 
+        # Add Close Button
+        self.close_button = tk.Button(root, text="X", command=self.root.destroy,
+                                      bg="black", fg="white", bd=0, font=("Arial", 12))
+        self.close_button.place(x=770, y=0)  # top-right corner
+
         self.update_feed()
         self.scroll()
         self.cycle_color()   # start slower color cycling
@@ -119,5 +124,4 @@ if __name__ == "__main__":
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
-
 
