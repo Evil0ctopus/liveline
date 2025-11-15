@@ -11,13 +11,20 @@ def load_feeds():
 
 def fetch_feed(url):
     try:
-        response = requests.get(url, timeout=5)
-        soup = BeautifulSoup(response.text, "xml")
-        items = soup.find_all("title")
-        headlines = [item.get_text() for item in items[1:6]]  # skip feed title
-        return " | ".join(headlines)
+        resp = requests.get(url, timeout=10)
+        soup = BeautifulSoup(resp.content, "xml")
+
+        # Try RSS <item> first
+        items = soup.find_all("item")
+        # Fallback for Atom feeds like NOAA
+        if not items:
+            items = soup.find_all("entry")
+
+        headlines = " | ".join([item.title.text for item in items[:5]])
+        return headlines if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
+
 
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
