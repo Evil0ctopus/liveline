@@ -62,9 +62,19 @@ class TickerApp:
         )
 
         # Close Button (far right, not overlapping text)
-        self.close_button = tk.Button(root, text="X", command=self.root.destroy,
-                                      bg="black", fg="white", bd=0, font=("Arial", 12))
-        self.close_button.place(x=455, y=0)
+        self.close_button = tk.Button(
+    root,
+    text="X",
+    command=self.root.destroy,
+    bg="black",
+    fg="white",
+    bd=0,
+    font=("Arial", 10),   # smaller font
+    padx=1,               # reduce horizontal padding
+    pady=0                # reduce vertical padding
+)
+self.close_button.place(x=465, y=5)   # adjust position slightly
+
 
         self.headlines = []  # store headlines + URLs
 
