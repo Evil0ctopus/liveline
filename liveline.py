@@ -151,7 +151,7 @@ if __name__ == "__main__":
     screen_height = root.winfo_screenheight()
     window_width = 480   # about 5 inches wide
     window_height = 50
-    x = 144              # shift ~1.5 inches to the right
+    x = 130              # shift ~1.5 inches to the right
     y = screen_height - window_height
     root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
