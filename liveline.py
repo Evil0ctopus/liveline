@@ -55,11 +55,11 @@ class TickerApp:
         self.feed_cycle = itertools.cycle(feeds)
 
         self.text_item = self.canvas.create_text(
-            480 if direction=="left" else 0, 25,
+            480 if direction == "left" else 0, 25,
             text="Loading feeds...",
             fill="white",
             font=("Arial", 16),
-            anchor="w" if direction=="left" else "e"
+            anchor="w" if direction == "left" else "e"
         )
 
         # Close Button (smaller click area, far right)
@@ -101,60 +101,58 @@ class TickerApp:
         self.root.after(60000, self.update_feed)
 
     def scroll(self):
-        dx = -4 if self.direction=="left" else 4
+        dx = -4 if self.direction == "left" else 4
         self.canvas.move(self.text_item, dx, 0)
 
         x = self.canvas.coords(self.text_item)[0]
-        if self.direction=="left" and x < -2000:
+        if self.direction == "left" and x < -2000:
             self.canvas.coords(self.text_item, 480, 25)
-        elif self.direction=="right" and x > 2000:
+        elif self.direction == "right" and x > 2000:
             self.canvas.coords(self.text_item, 0, 25)
         self.root.after(50, self.scroll)
 
     def show_popup(self, event=None):
-    popup = tk.Toplevel(self.root)
-    popup.title("Liveline Headlines")
-    popup.geometry("400x300+100+100")
-    popup.attributes("-topmost", True)
+        popup = tk.Toplevel(self.root)
+        popup.title("Liveline Headlines")
+        popup.geometry("400x300+100+100")
+        popup.attributes("-topmost", True)
 
-    tk.Label(popup, text="Latest Headlines", font=("Arial", 14, "bold")).pack(pady=5)
+        tk.Label(popup, text="Latest Headlines", font=("Arial", 14, "bold")).pack(pady=5)
 
-    for headline, link in self.headlines:
-        frame = tk.Frame(popup)
-        frame.pack(anchor="w", pady=2)
+        for headline, link in self.headlines:
+            frame = tk.Frame(popup)
+            frame.pack(anchor="w", pady=2)
 
-        thumb_img = None   # ✅ aligned with frame creation
+            thumb_img = None
+            if link:
+                try:
+                    resp = requests.get(link, timeout=5)
+                    soup = BeautifulSoup(resp.content, "html.parser")
+                    og_image = soup.find("meta", property="og:image")
+                    if og_image and og_image.get("content"):
+                        img_url = og_image["content"]
+                        img_resp = requests.get(img_url, timeout=5)
+                        if "image" in img_resp.headers.get("Content-Type", ""):
+                            img_data = img_resp.content
+                            try:
+                                pil_img = Image.open(io.BytesIO(img_data))
+                                pil_img.thumbnail((40, 40))
+                                thumb_img = ImageTk.PhotoImage(pil_img)
+                            except Exception as e:
+                                print(f"PIL error: {e}")
+                except Exception as e:
+                    print(f"Thumbnail error: {e}")
 
-        if link:
-            try:
-                resp = requests.get(link, timeout=5)
-                soup = BeautifulSoup(resp.content, "html.parser")
-                og_image = soup.find("meta", property="og:image")
-                if og_image and og_image.get("content"):
-                    img_url = og_image["content"]
-                    img_resp = requests.get(img_url, timeout=5)
-                    if "image" in img_resp.headers.get("Content-Type", ""):
-                        img_data = img_resp.content
-                        try:
-                            pil_img = Image.open(io.BytesIO(img_data))
-                            pil_img.thumbnail((40, 40))
-                            thumb_img = ImageTk.PhotoImage(pil_img)
-                        except Exception as e:
-                            print(f"PIL error: {e}")
-            except Exception as e:
-                print(f"Thumbnail error: {e}")
+            if thumb_img:
+                img_label = tk.Label(frame, image=thumb_img)
+                img_label.image = thumb_img  # keep reference
+                img_label.pack(side="left")
 
-        if thumb_img:
-            img_label = tk.Label(frame, image=thumb_img)
-            img_label.image = thumb_img  # keep reference
-            img_label.pack(side="left")
-
-        link_label = tk.Label(frame, text=headline, fg="blue", cursor="hand2",
-                              wraplength=320, justify="left")
-        link_label.pack(side="left")
-        if link:
-            link_label.bind("<Button-1>", lambda e, url=link: webbrowser.open(url))
-
+            link_label = tk.Label(frame, text=headline, fg="blue", cursor="hand2",
+                                  wraplength=320, justify="left")
+            link_label.pack(side="left")
+            if link:
+                link_label.bind("<Button-1>", lambda e, url=link: webbrowser.open(url))
 
     # --- Dragging support ---
     def start_move(self, event):
