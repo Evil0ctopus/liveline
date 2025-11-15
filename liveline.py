@@ -29,25 +29,14 @@ def fetch_feed(url):
                 if text:
                     headlines.append(text)
             # Atom fallback: <summary>
-            summary_tag = item.find("summary")
-            if not headlines and summary_tag:
-                text = summary_tag.get_text(strip=True)
+            elif item.find("summary"):
+                text = item.find("summary").get_text(strip=True)
                 if text:
                     headlines.append(text)
 
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
-
-
-
-
-
-
-
-
-
-
 
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
