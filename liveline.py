@@ -100,7 +100,7 @@ def on_quit(icon, item):
 
 def run_tray():
     icon = Icon("Liveline", create_image(), menu=(
-        MenuItem("Show Ticker", lambda icon, item: root.deiconify()),
+        MenuItem("Show Ticker", lambda icon, item: (root.deiconify(), root.lift(), root.focus_force())),
         MenuItem("Hide Ticker", lambda icon, item: root.withdraw()),
         MenuItem("Quit", on_quit)
     ))
