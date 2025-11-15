@@ -40,17 +40,15 @@ class TickerApp:
             fill="white",
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
+        )
 
-        # 🌈 Add rainbow colors here
+        # 🌈 Rainbow colors
         self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
         self.color_index = 0
 
         self.update_feed()
         self.scroll()
 
-        )
-        self.update_feed()
-        self.scroll()
 
     def update_feed(self):
         url = next(self.feed_cycle)
