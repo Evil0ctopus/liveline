@@ -1,10 +1,10 @@
 {
   "feeds": [
     "https://www.spaceweatherlive.com/rss/solar-activity.xml",
-    "https://forecast.weather.gov/MapClick.php?lat=37.912418&lon=-90.710916", 
-    "https://apnews.com/apf-topnews"
-    "http://feeds.bbci.co.uk/news/rss.xml"
-    "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+    "https://www.weather.gov/rss/stl",
+    "https://apnews.com/apf-topnews",
+    "http://feeds.bbci.co.uk/news/rss.xml",
+    "https://www.nasa.gov/rss/dyn/breaking_news.rss",
     "https://www.reddit.com/r/python/.rss"
   ]
 }
