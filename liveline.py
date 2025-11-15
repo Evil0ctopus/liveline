@@ -40,7 +40,6 @@ class TickerApp:
             fill="white",
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
-        )
 
         # 🌈 Add rainbow colors here
         self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
