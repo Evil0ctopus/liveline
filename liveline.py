@@ -23,24 +23,27 @@ def fetch_feed(url):
 
         headlines = []
         for item in items[:5]:
-            # Atom/RSS: look for <title>
             title_tag = item.find("title")
+            link_tag = item.find("link")
+
             if title_tag:
                 text = title_tag.get_text(strip=True)
                 if text:
-                    headlines.append(text)
+                    # Use actual link if available
+                    link = link_tag.get_text(strip=True) if link_tag else None
+                    headlines.append((text, link))
                     continue
-            # Atom fallback: <summary>
+
             summary_tag = item.find("summary")
             if summary_tag:
                 text = summary_tag.get_text(strip=True)
                 if text:
-                    headlines.append(text)
+                    headlines.append((text, None))
                     continue
 
-        return " | ".join(headlines) if headlines else "No headlines found"
+        return headlines if headlines else [("No headlines found", None)]
     except Exception as e:
-        return f"Error fetching {url}: {e}"
+        return [(f"Error fetching {url}: {e}", None)]
 
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
@@ -53,7 +56,7 @@ class TickerApp:
         self.text_item = self.canvas.create_text(
             480 if direction=="left" else 0, 25,
             text="Loading feeds...",
-            fill="white",   # fixed color
+            fill="white",
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
         )
@@ -63,6 +66,8 @@ class TickerApp:
                                       bg="black", fg="white", bd=0, font=("Arial", 12))
         self.close_button.place(x=455, y=0)
 
+        self.headlines = []  # store headlines + URLs
+
         self.update_feed()
         self.scroll()
 
@@ -70,17 +75,19 @@ class TickerApp:
         self.canvas.bind("<ButtonPress-1>", self.start_move)
         self.canvas.bind("<B1-Motion>", self.do_move)
 
-        # Hover popup bound to canvas (not text)
-        self.canvas.bind("<Enter>", self.show_popup)
+        # Click anywhere on ticker to open popup
+        self.canvas.bind("<Button-1>", self.show_popup)
 
     def update_feed(self):
         url = next(self.feed_cycle)
-        headlines = fetch_feed(url)
+        self.headlines = fetch_feed(url)
 
         print(f"\n[Liveline] Loaded feed: {url}")
-        print(f"[Liveline] Headlines: {headlines}\n")
+        print(f"[Liveline] Headlines: {[h[0] for h in self.headlines]}\n")
 
-        self.canvas.itemconfig(self.text_item, text=headlines)
+        # Display joined headlines in ticker
+        display_text = " | ".join([h[0] for h in self.headlines])
+        self.canvas.itemconfig(self.text_item, text=display_text)
         self.root.after(60000, self.update_feed)
 
     def scroll(self):
@@ -100,17 +107,14 @@ class TickerApp:
         popup.geometry("400x300+100+100")
         popup.attributes("-topmost", True)
 
-        headlines_text = self.canvas.itemcget(self.text_item, "text")
         tk.Label(popup, text="Latest Headlines", font=("Arial", 14, "bold")).pack(pady=5)
 
-        for headline in headlines_text.split(" | "):
-            link = tk.Label(popup, text=headline, fg="blue", cursor="hand2", wraplength=380, justify="left")
-            link.pack(anchor="w")
-            # Optional: make links clickable (search in browser)
-            link.bind("<Button-1>", lambda e, h=headline: webbrowser.open(f"https://www.google.com/search?q={h}"))
-
-        # Close popup when mouse leaves ticker area
-        self.canvas.bind("<Leave>", lambda e: popup.destroy())
+        for headline, link in self.headlines:
+            link_label = tk.Label(popup, text=headline, fg="blue", cursor="hand2",
+                                  wraplength=380, justify="left")
+            link_label.pack(anchor="w")
+            if link:
+                link_label.bind("<Button-1>", lambda e, url=link: webbrowser.open(url))
 
     # --- Dragging support ---
     def start_move(self, event):
