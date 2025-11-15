@@ -110,7 +110,7 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Liveline Ticker")
 
-    # Start minimized so it shows in the taskbar
+    # 👇 Start minimized so it shows in the taskbar
     root.iconify()
 
     # Start tray in background thread
@@ -119,4 +119,5 @@ if __name__ == "__main__":
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
+
 
