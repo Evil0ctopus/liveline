@@ -146,7 +146,7 @@ if __name__ == "__main__":
     # Position at bottom-left above taskbar
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    window_width = 800
+    window_width = 480
     window_height = 50
     x = 0
     y = screen_height - window_height
