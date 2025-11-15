@@ -24,11 +24,11 @@ def fetch_feed(url):
         for item in items[:5]:
             # Atom/RSS: look for <title>
             title_tag = item.find("title")
-            if title_tag and title_tag.text:
-                headlines.append(title_tag.text.strip())
+            if title_tag and title_tag.get_text():
+                headlines.append(title_tag.get_text(strip=True))
             # Atom fallback: <summary>
-            elif item.find("summary") and item.find("summary").text:
-                headlines.append(item.find("summary").text.strip())
+            elif item.find("summary") and item.find("summary").get_text():
+                headlines.append(item.find("summary").get_text(strip=True))
             # Extra fallback: <link title="...">
             elif item.find("link") and item.find("link").get("title"):
                 headlines.append(item.find("link").get("title").strip())
@@ -36,6 +36,7 @@ def fetch_feed(url):
         return " | ".join(headlines) if headlines else "No headlines found"
     except Exception as e:
         return f"Error fetching {url}: {e}"
+
 
 
 
