@@ -56,27 +56,27 @@ class TickerApp:
         self.text_item = self.canvas.create_text(
             480 if direction=="left" else 0, 25,
             text="Loading feeds...",
-            fill="white",
+            fill="white",   # fixed color
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
         )
 
-        # Close Button (far right, not overlapping text)
+        # Close Button (smaller click area, far right)
         self.close_button = tk.Button(
-    root,
-    text="X",
-    command=self.root.destroy,
-    bg="black",
-    fg="white",
-    bd=0,
-    font=("Arial", 10),   # smaller font
-    padx=1,               # reduce horizontal padding
-    pady=0                # reduce vertical padding
-)
-self.close_button.place(x=465, y=5)   # adjust position slightly
+            root,
+            text="X",
+            command=self.root.destroy,
+            bg="black",
+            fg="white",
+            bd=0,
+            font=("Arial", 10),   # smaller font
+            padx=1,               # reduce horizontal padding
+            pady=0                # reduce vertical padding
+        )
+        self.close_button.place(x=465, y=5)
 
-
-        self.headlines = []  # store headlines + URLs
+        # Store headlines + URLs
+        self.headlines = []
 
         self.update_feed()
         self.scroll()
@@ -158,5 +158,4 @@ if __name__ == "__main__":
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
-
 
