@@ -45,37 +45,32 @@ def fetch_feed(url):
 class TickerApp:
     def __init__(self, root, feeds, direction="left"):
         self.root = root
-        self.canvas = tk.Canvas(root, height=50, width=800, bg="black", highlightthickness=0)
+        self.canvas = tk.Canvas(root, height=50, width=480, bg="black", highlightthickness=0)
         self.canvas.pack()
         self.direction = direction
         self.feed_cycle = itertools.cycle(feeds)
 
         self.text_item = self.canvas.create_text(
-            800 if direction=="left" else 0, 25,
+            480 if direction=="left" else 0, 25,
             text="Loading feeds...",
-            fill="white",
+            fill="white",   # fixed color
             font=("Arial", 16),
             anchor="w" if direction=="left" else "e"
         )
 
-        # 🌈 Rainbow colors
-        self.colors = ["white"]
-        self.color_index = 0
-
         # Close Button (far right, not overlapping text)
         self.close_button = tk.Button(root, text="X", command=self.root.destroy,
                                       bg="black", fg="white", bd=0, font=("Arial", 12))
-        self.close_button.place(x=770, y=0)
+        self.close_button.place(x=455, y=0)
 
         self.update_feed()
         self.scroll()
-        self.cycle_color()   # start slower color cycling
 
         # Enable dragging the widget
         self.canvas.bind("<ButtonPress-1>", self.start_move)
         self.canvas.bind("<B1-Motion>", self.do_move)
 
-        # Hover popup
+        # Hover popup bound to canvas (not text)
         self.canvas.bind("<Enter>", self.show_popup)
 
     def update_feed(self):
@@ -94,16 +89,10 @@ class TickerApp:
 
         x = self.canvas.coords(self.text_item)[0]
         if self.direction=="left" and x < -2000:
-            self.canvas.coords(self.text_item, 800, 25)
+            self.canvas.coords(self.text_item, 480, 25)
         elif self.direction=="right" and x > 2000:
             self.canvas.coords(self.text_item, 0, 25)
         self.root.after(50, self.scroll)
-
-    def cycle_color(self):
-        # Change color every 1000 ms (1 second)
-        self.canvas.itemconfig(self.text_item, fill=self.colors[self.color_index])
-        self.color_index = (self.color_index + 1) % len(self.colors)
-        self.root.after(1000, self.cycle_color)
 
     def show_popup(self, event=None):
         popup = tk.Toplevel(self.root)
@@ -120,7 +109,7 @@ class TickerApp:
             # Optional: make links clickable (search in browser)
             link.bind("<Button-1>", lambda e, h=headline: webbrowser.open(f"https://www.google.com/search?q={h}"))
 
-        # Close popup when mouse leaves ticker
+        # Close popup when mouse leaves ticker area
         self.canvas.bind("<Leave>", lambda e: popup.destroy())
 
     # --- Dragging support ---
@@ -143,12 +132,12 @@ if __name__ == "__main__":
     root.config(bg="black")            # background color
     root.wm_attributes("-transparentcolor", "black")  # transparent background
 
-    # Position at bottom-left above taskbar
+    # Position at bottom-left above taskbar, shifted 1.5 inches (~144px) to the right
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
-    window_width = 480
+    window_width = 480   # about 5 inches wide
     window_height = 50
-    x = 130   # shift ~1.5 inches to the right
+    x = 144              # shift ~1.5 inches to the right
     y = screen_height - window_height
     root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
