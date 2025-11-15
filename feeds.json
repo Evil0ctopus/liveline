@@ -1,6 +1,6 @@
 {
   "feeds": [
-    "https://services.swpc.noaa.gov/news/index.xml",
+    "https://www.spaceweatherlive.com/rss_news.xml",
     "https://www.weather.gov/rss/stl",
     "https://apnews.com/apf-topnews?format=xml",
     "http://feeds.bbci.co.uk/news/rss.xml",
