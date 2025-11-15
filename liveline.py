@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import itertools
+import webbrowser
 
 def load_feeds():
     with open("feeds.json", "r") as f:
@@ -61,10 +62,10 @@ class TickerApp:
         self.colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"]
         self.color_index = 0
 
-        # Add Close Button
+        # Close Button (far right, not overlapping text)
         self.close_button = tk.Button(root, text="X", command=self.root.destroy,
                                       bg="black", fg="white", bd=0, font=("Arial", 12))
-        self.close_button.place(x=770, y=0)  # top-right corner
+        self.close_button.place(x=770, y=0)
 
         self.update_feed()
         self.scroll()
@@ -73,6 +74,9 @@ class TickerApp:
         # Enable dragging the widget
         self.canvas.bind("<ButtonPress-1>", self.start_move)
         self.canvas.bind("<B1-Motion>", self.do_move)
+
+        # Hover popup
+        self.canvas.bind("<Enter>", self.show_popup)
 
     def update_feed(self):
         url = next(self.feed_cycle)
@@ -101,6 +105,24 @@ class TickerApp:
         self.color_index = (self.color_index + 1) % len(self.colors)
         self.root.after(1000, self.cycle_color)
 
+    def show_popup(self, event=None):
+        popup = tk.Toplevel(self.root)
+        popup.title("Liveline Headlines")
+        popup.geometry("400x300+100+100")
+        popup.attributes("-topmost", True)
+
+        headlines_text = self.canvas.itemcget(self.text_item, "text")
+        tk.Label(popup, text="Latest Headlines", font=("Arial", 14, "bold")).pack(pady=5)
+
+        for headline in headlines_text.split(" | "):
+            link = tk.Label(popup, text=headline, fg="blue", cursor="hand2", wraplength=380, justify="left")
+            link.pack(anchor="w")
+            # Optional: make links clickable (search in browser)
+            link.bind("<Button-1>", lambda e, h=headline: webbrowser.open(f"https://www.google.com/search?q={h}"))
+
+        # Close popup when mouse leaves ticker
+        self.canvas.bind("<Leave>", lambda e: popup.destroy())
+
     # --- Dragging support ---
     def start_move(self, event):
         self._x = event.x
@@ -121,7 +143,17 @@ if __name__ == "__main__":
     root.config(bg="black")            # background color
     root.wm_attributes("-transparentcolor", "black")  # transparent background
 
+    # Position at bottom-left above taskbar
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    window_width = 800
+    window_height = 50
+    x = 0
+    y = screen_height - window_height
+    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
+
 
