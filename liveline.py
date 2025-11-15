@@ -82,7 +82,7 @@ class TickerApp:
         self.update_feed()
         self.scroll()
 
-        # Enable dragging the widget
+        # Enable dragging the widget (safe detection)
         self.canvas.bind("<ButtonPress-1>", self.start_move)
         self.canvas.bind("<B1-Motion>", self.do_move)
 
@@ -154,15 +154,20 @@ class TickerApp:
             if link:
                 link_label.bind("<Button-1>", lambda e, url=link: webbrowser.open(url))
 
-    # --- Dragging support ---
+    # --- Dragging support with safe detection ---
     def start_move(self, event):
         self._x = event.x
         self._y = event.y
+        self._dragging = False
 
     def do_move(self, event):
-        x = self.root.winfo_x() + event.x - self._x
-        y = self.root.winfo_y() + event.y - self._y
-        self.root.geometry(f"+{x}+{y}")
+        dx = abs(event.x - self._x)
+        dy = abs(event.y - self._y)
+        if dx > 2 or dy > 2:   # only drag if moved more than 2px
+            self._dragging = True
+            x = self.root.winfo_x() + event.x - self._x
+            y = self.root.winfo_y() + event.y - self._y
+            self.root.geometry(f"+{x}+{y}")
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -184,4 +189,5 @@ if __name__ == "__main__":
     feeds = load_feeds()
     app = TickerApp(root, feeds, direction="left")
     root.mainloop()
+
 
